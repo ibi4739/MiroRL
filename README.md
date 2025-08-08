@@ -53,7 +53,7 @@ We provide a pre-built Docker image with all dependencies installed, which is th
 docker pull miromind/mirorl:v0.1.0
 
 # Run the container with GPU support
-docker run --gpus all -it --rm \
+docker run --gpus all --shm-size=8g -it --rm \
     -v $(pwd):/workspace \
     -w /workspace \
     miromind/mirorl:v0.1.0
@@ -90,7 +90,7 @@ huggingface-cli download --repo-type dataset miromind-ai/MiroRL-GenQA --local-di
 
 ```bash
 # Download model from hugging face
-huggingface-cli download miromind-ai/MiroRL-14B-SFT-SingleAgent-Preview-v0.1 --local-dir models/
+huggingface-cli download miromind-ai/MiroRL-14B-SFT-SingleAgent-v0.1 --local-dir models/
 ```
 
 #### Step 3: Perform GPRO training with MCP Tool Calling
