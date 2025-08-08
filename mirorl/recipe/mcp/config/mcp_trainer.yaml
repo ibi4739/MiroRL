@@ -1,0 +1,63 @@
+hydra:
+  searchpath:
+    - file://verl/verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+custom_reward_function:
+  name: browsecomp_compute_score # available scorers: gaia_naive_compute_score, simpleqa_compute_score, browsecomp_compute_score, gpt41_compute_score, cascade_compute_score
+  path: "./mirorl/utils/reward_score/llm_judge.py"
+reward_model:
+  reward_manager: tool
+  reward_kwargs:
+    accuracy_reward_weight: 0.9
+    tool_format_reward_weight: 0.1
+    gate_tool_format_reward: False # If set to True, the tool format reward will not be given unless the final answer is correct, even if the tool format is correct. If set to False, the tool format reward will be given as long as the tool format is correct, regardless of whether the final answer is correct.
+    async_process: True
+    batch_size: 300
+    max_retry: 3
+
+data:
+  max_prompt_length: 1024
+  max_response_length: 1024
+  train_batch_size: 256
+  return_raw_chat: True
+
+actor_rollout_ref:
+  hybrid_engine: True
+  rollout:
+    name: sglang
+    multi_turn:
+      enable: True
+      max_turns: 20
+
+      # <use_mcp_tool>...</use_mcp_tool> style tool call for multi-turn rollout
+      use_mcp_tool_call: True
+
+      # tool response cut off length(general web page should have a info density of 4 chars per token)
+      tool_response_cut_off_length: 20000
+
+      # this means both self.input_ids and self.messages will not contain the think text for intermediate rounds
+      keep_think_text_for_last_round_only: False
+
+      # think block close tag, this works for both Qwen2.5/3 and DeepSeek-R1
+      think_block_close_tag: "</think>"
+
+      # this flag is used to ignore loss calculation for failed rollouts
+      ignore_failed_rollouts_in_loss: False
+
+trainer:
+  # Monitor config
+  # Whether to enable wandb alert
+  enable_wandb_alert: False
+
+  # Tool check alert threshold
+  # current step's tool calling error count is x times of the previous step's tool calling error count
+  # then will trigger alert
+  tool_check_alert_threshold: 10
+
+  # Training hang check interval (in seconds)
+  # if global step is not updated for hang_check_interval seconds, will trigger alert
+  hang_check_interval: 3600

@@ -1,0 +1,20 @@
+tools:
+  - class_name: "mirorl.tools.mcp_tool.MCPTool"
+    config:
+      command: "python"
+      args: ["mirorl/tools/serper_search.py"]
+      env: ["SERPER_API_KEY", "HTTPS_PROXY"]
+      server_name: "search_and_scrape_webpage"
+    tool_schema:
+      type: "mcp"
+      function: {}
+  - class_name: "mirorl.tools.mcp_tool.MCPTool"
+    config:
+      command: "python"
+      args: ["mirorl/tools/jina_scrape_llm_summary.py"]
+      env: ["JINA_API_KEY", "HTTPS_PROXY", "NO_PROXY", "SUMMARY_LLM_URL", "SUMMARY_LLM_NAME"]
+      server_name: "jina_scrape_llm_summary"
+      execution_timeout: 600
+    tool_schema:
+      type: "mcp"
+      function: {}
