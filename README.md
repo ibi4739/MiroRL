@@ -22,7 +22,7 @@
 <strong>[2025/08/08]</strong> We release the full training recipe for MiroRL-14B-SingleAgent-Preview-v0.1, a 14B Deep Research Agent trained with MiroRL that achieves 40.29%(Avg@8) on the GAIA-text-103 subset, featuring strong and reproducible results for open-source models. 
 - 🤗 HF Dataset [`GenQA`](https://huggingface.co/datasets/miromind-ai/MiroRL-GenQA) for RL training.
 - 🤗 HF SFT Coldstart Checkpoint [`MiroRL-14B-SFT-SingleAgent-v0.1`](https://huggingface.co/miromind-ai/MiroRL-14B-SFT-SingleAgent-v0.1)
-- 📄 [Training Scripts](https://github.com/MiroMindAsia/mirorl/blob/main/mirorl/recipe/mcp/run_mirorl_14b_8xgpu.sh)
+- 📄 [Training Scripts](https://github.com/MiroMindAI/MiroRL/blob/main/mirorl/recipe/mcp/run_mirorl_14b_8xgpu.sh)
 
 <strong>[2025/08/08]</strong> MiroRL-v0.1 is released.
 
